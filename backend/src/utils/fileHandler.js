@@ -3,12 +3,14 @@ import path from "path";
 import sharp from "sharp";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsPath = path.join(__dirname, "..", "uploads");
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+const uploadsPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "uploads");       // path to uploads folder //how to get path of current module in ES6
 
-// ensure uploads exists
-if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
+// ensure uploads exists and create if not
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true })                  // fs.mkdirSync(path, { recursive: true }) creates parent dirs if not exist
+}; 
 
 /**
  * Accepts multer file (in memory) and processes via sharp
@@ -17,9 +19,10 @@ if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
 export async function processAndSaveImage(file) {
   // file: { buffer, mimetype, originalname }
   const timestamp = Date.now();
-  const ext = file.mimetype === "image/png" ? "png" : "jpg";
-  const filename = `photo_${timestamp}.${ext}`;
-  const outPath = path.join(uploadsPath, filename);
+  // determine extension and filename
+  const ext = file.mimetype === "image/png" ? "png" : "jpg";              //optional use path.extname(file.originalname).toLowerCase().slice(1);
+  const filename = `photo_${timestamp}.${ext}`;                           //saving as photo_timestamp.ext
+  const outPath = path.join(uploadsPath, filename);                       // full path to save file
 
   // Use sharp to decompress/normalize image (resize to max 1024x1024)
   let sharpInstance = sharp(file.buffer).rotate();
@@ -34,6 +37,6 @@ export async function processAndSaveImage(file) {
   }
 
   // return relative path from src folder (so route /uploads/... works)
-  const relative = path.join("uploads", filename); // src/uploads/filename
+  const relative = path.join("uploads", filename);  // src/uploads/filename           in output it is uploads//filename.ect how to remove double slash? 
   return relative;
 }

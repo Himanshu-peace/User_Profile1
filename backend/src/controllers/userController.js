@@ -3,11 +3,11 @@ import path from "path";
 import User from "../model/user.js";
 import { processAndSaveImage } from "../utils/fileHandler.js";
 
-const uploadsDir = path.join(new URL('.', import.meta.url).pathname, 'uploads'); // not used directly but kept
+const uploadsDir = path.join(new URL('.', import.meta.url).pathname, 'uploads'); // not used directly but kept for reference
 
 export const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");                 // exclude password query
+    const user = await User.findById(req.user.id).select("-password");                 // -password to exclude password field
     if (!user) return res.status(404).json({ message: "User not found" });
     if (user.isBlocked) {
       return res.status(403).json({ message: `Your account is blocked. Reason: ${user.blockedReason || "No reason provided"}` });
@@ -25,26 +25,17 @@ export const updateMe = async (req, res, next) => {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     if (user.isBlocked) {
-      return res.status(403).json({ message: `Your account is blocked. Reason: ${user.blockedReason || "No reason provided"}` });
+      return res.status(403).json({ message: `Your account is blocked. Reason: ${user.blockedReason || "Inappropriate profile data, after review and uptadion you will be unblocked."}` });
     }
 
     // handle photo if uploaded (multer put it in req.file)
-    if (req.file) {
+    if (req.file) {                                                                   
       const savedRelativePath = await processAndSaveImage(req.file);
       user.profile.photo = savedRelativePath;
     }
 
     // merge allowed fields (basic)
-    const incoming = req.body;
-    // if (incoming.fullName) user.fullName = incoming.fullName;
-    // if (incoming.email) user.email = incoming.email;
-    // if (incoming.dateOfBirth) user.profile.dob = new Date(incoming.dateOfBirth);
-    // if (incoming.address) user.profile.address = incoming.address;
-    // if (incoming.maritalStatus) user.profile.maritalStatus = incoming.maritalStatus;
-    // if (incoming.currentLocation) user.profile.currentLocation = incoming.currentLocation;
-    // if (incoming.phone) user.profile.phone = incoming.phone;
-
-    // Alternatively, a more dynamic approach:
+    const incoming = req.body;            
     user.fullName = incoming.fullName || user.fullName;
     user.email = incoming.email || user.email;
     user.profile.dob = incoming.dateOfBirth ? new Date(incoming.dateOfBirth) : user.profile.dob;
@@ -54,7 +45,7 @@ export const updateMe = async (req, res, next) => {
     user.profile.phone = incoming.phone || user.profile.phone;
 
     await user.save();
-    const safe = user.toObject();
+    const safe = user.toObject();            // convert to plain object to delete password // mongoose doc has no delete
     delete safe.password;
     res.json(safe);
   } catch (err) {
@@ -67,11 +58,11 @@ export const deleteMe = async (req, res, next) => {
     const user = await User.findByIdAndDelete(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
     // Optionally remove photo file
-    if (user.profile?.photo) {
-      const fpath = path.join(process.cwd(), "src", user.profile.photo);
-      fs.unlink(fpath, (e) => {});
+    if (user.profile?.photo) {   // check if photo exists then delete
+      const fpath = path.join(process.cwd(), "src", user.profile.photo); // construct full path to file for deletion
+      fs.unlink(fpath, (e) => {});                              // delete file async, ignore errors
     }
-    res.json({ message: "User deleted" });
+    res.json({ message: "User deleted permanently" });
   } catch (err) {
     next(err);
   }

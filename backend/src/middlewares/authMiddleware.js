@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 
-export default function auth(req, res, next) {                                       // authentication middleware cheaking JWT token
+export default function auth(req, res, next) {                                       
   try {
-    const header = req.headers.authorization;
+    const header = req.headers.authorization;  //headers contain authorization info is the form Bearer <token>
     if (!header || !header.startsWith("Bearer ")) return res.status(401).json({ message: "Unauthorized" });
     const token = header.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);                                // verify token with secret key stored in env variable 

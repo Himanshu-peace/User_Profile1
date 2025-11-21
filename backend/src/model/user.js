@@ -17,11 +17,15 @@ const UserSchema = new mongoose.Schema({
   },
   password: { 
     type: String, 
-    required: true 
+    required: true,
+    minlength: [6, "Password must be at least 6 characters long"],
+    maxlength: [15, "Password cannot exceed 15 characters"],
   },
   profile: {
       photo: { 
-        type: String     // path to photo file  
+        type: String,        // path to photo file  
+        default: "no photo",
+        timestamps: true
       }, 
       dob: { 
         type: Date 
@@ -50,6 +54,9 @@ const UserSchema = new mongoose.Schema({
   isBlocked: { 
     type: Boolean, 
     default: false 
+  },
+  blockedReason: { 
+    type: String 
   }
 }, { timestamps: true });
 
