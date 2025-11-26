@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";                                      
 import path from "path";                                        
 import { fileURLToPath } from "url";                               // to get __dirname in ES modules but in CJS it's available by default by using __dirname and __filename in every file 
+import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";                   // authentication routes
 import userRoutes from "./routes/userRoutes.js";                   // user-related routes
@@ -11,6 +12,29 @@ import errorHandler from "./middlewares/errorMiddleware.js";
 // const __dirname = path.dirname(fileURLToPath(import.meta.url));                        // get the current directory path
 
 const app = express();
+
+app.use(cors({
+  origin: "*",       
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// const allowedOrigins = [
+//   "http://localhost:3000",
+//   "http://localhost:5173",
+// ];
+
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+//   credentials: true
+// }));
 
 app.use(express.json());                                           // body parsing middleware
 app.use(express.urlencoded({ extended: true }));                   // body parsing middleware from URL-encoded forms
