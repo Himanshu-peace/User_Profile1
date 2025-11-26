@@ -1,5 +1,5 @@
 import User from "../model/user.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
 export default async function seedAdmin() {
   // read from env variables

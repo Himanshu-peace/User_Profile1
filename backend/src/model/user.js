@@ -1,12 +1,15 @@
 // import { kMaxLength } from "buffer";
 import mongoose from "mongoose";
+import { type } from "os";
 // const ProfileSchema = new mongoose.Schema(, { _id: false });
 
 const UserSchema = new mongoose.Schema({
   fullName: { 
     type: String, 
     required: true, 
-    trim: true 
+    trim: true,
+    minlength: [2, "Full name must be at least 2 characters long"],
+    maxlength: [100, "Full name cannot exceed 50 characters"]  
   },
   email: { 
     type: String, 
@@ -19,7 +22,6 @@ const UserSchema = new mongoose.Schema({
     type: String, 
     required: true,
     minlength: [6, "Password must be at least 6 characters long"],
-    maxlength: [15, "Password cannot exceed 15 characters"],
   },
   profile: {
       photo: { 
@@ -27,7 +29,7 @@ const UserSchema = new mongoose.Schema({
         default: "no photo",
         timestamps: true
       }, 
-      dob: { 
+      dob: {                               //change dob to dateOfBirth
         type: Date 
       },
       address: { 
@@ -56,12 +58,20 @@ const UserSchema = new mongoose.Schema({
     default: false 
   },
   blockedReason: { 
-    type: String 
+    type: String,
+    default: ""
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  isVerified: { 
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 
 // hash password before save if changed
-
 // compare method
 
-export default mongoose.model('User2', UserSchema);
+export default mongoose.model('User', UserSchema);

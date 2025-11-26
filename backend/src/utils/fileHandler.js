@@ -26,17 +26,16 @@ export async function processAndSaveImage(file) {
 
   // Use sharp to decompress/normalize image (resize to max 1024x1024)
   let sharpInstance = sharp(file.buffer).rotate();
-
   // limit max dimension to 1024
   sharpInstance = sharpInstance.resize({ width: 1024, height: 1024, fit: "inside" });
 
   if (ext === "png") {
-    await sharpInstance.png({ quality: 90 }).toFile(outPath);
+    await sharpInstance.png({ quality: 90 }).toFile(outPath);       //.png(), .jpeg(), .tofilr() saves file to outPath
   } else {
     await sharpInstance.jpeg({ quality: 85 }).toFile(outPath);
   }
 
   // return relative path from src folder (so route /uploads/... works)
-  const relative = path.join("uploads", filename);  // src/uploads/filename           in output it is uploads//filename.ect how to remove double slash? 
+  const relative = path.join("uploads", filename);  // src/uploads/filename          
   return relative;
 }
