@@ -13,23 +13,23 @@ import errorHandler from "./middlewares/errorMiddleware.js";
 
 const app = express();
 
+const allowed = [
+  "http://localhost:5173"
+];
+
 app.use(cors({
-  origin: "*",       
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  origin: (origin, cb) => {
+    if (!origin || allowed.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  credentials: true
 }));
+
 
 app.use(express.json());                                           // body parsing middleware
 app.use(express.urlencoded({ extended: true }));                   // body parsing middleware from URL-encoded forms
 app.use(morgan("dev")); 
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://4f8dmfn1-5000.inc1.devtunnels.ms"
-  ],
-  credentials: true
-}));
 // serve uploads
 app.use("/uploads", express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), "uploads")));       // static file serving middleware
 
