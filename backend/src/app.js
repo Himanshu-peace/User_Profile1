@@ -19,27 +19,17 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// const allowedOrigins = [
-//   "http://localhost:3000",
-//   "http://localhost:5173",
-// ];
-
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-//   credentials: true
-// }));
-
 app.use(express.json());                                           // body parsing middleware
 app.use(express.urlencoded({ extended: true }));                   // body parsing middleware from URL-encoded forms
-app.use(morgan("dev"));               
+app.use(morgan("dev")); 
 
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://4f8dmfn1-5000.inc1.devtunnels.ms"
+  ],
+  credentials: true
+}));
 // serve uploads
 app.use("/uploads", express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), "uploads")));       // static file serving middleware
 
