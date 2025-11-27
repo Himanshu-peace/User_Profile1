@@ -96,6 +96,8 @@ export const updatePassword = async (req, res, next) => {
 
     const { ok, reason } = await verifyOtp({ email, purpose: "RESET_PASSWORD", otp });
     if (!ok) return res.status(400).json({ message: reason });
+    console.log(ok, reason);
+
 
     const user = await User.findById(req.user.id).select("+password");  // explicitly select password field
     if (!user || !user.password) return res.status(404).json({ message: "User not found" });

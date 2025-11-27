@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../model/user.js";
 import { createAndSendOtp, verifyOtp } from "../utils/otpHelper.js";
 import { sendEmail } from "../utils/emailServices.js";
+import {addTokenToBlacklist} from "../utils/tokenBlacklist.js";
 
 const createToken = (user) => {
   return jwt.sign(                                       // sign method takes payload as an object, secret key, options like expiration of token
@@ -51,6 +52,7 @@ export const register = async (req, res, next) => {
       await sendEmail(to , subject, html, text);
     };
 
+    console.log("success");  //for testing
 
     return res.status(201).json({ message: "Registered. Check your email for OTP to verify account." });
 
@@ -91,9 +93,9 @@ export const resendOtp = async(req,res,next)=> {
   try{
     const {email} = req.body;
     const user = await User.findOne({email});
-    if (!user) return res.status(404).json({ message: "User not found" });
+    // if (!user) return res.status(404).json({ message: "Otp sent check your email" });
 
-    if(user.isVerified) return res.status(403).json({ message: "Email already verified" });
+    // if(user.isVerified) return res.status(403).json({ message: "Email already verified" });
     
     await createAndSendOtp({
       email: user.email,
@@ -131,5 +133,20 @@ export const login = async (req, res, next) => {
     res.status(201).json({ token, user: { id: user._id, email: user.email, fullName: user.fullName, role: user.role }});
   } catch (err) {
     next(err);                                             //pass error to global error handler
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(" ")[1];
+
+    addTokenToBlacklist(token);
+
+    return res.status(200).json({
+      message: "Logged out successfully."
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Logout failed" });
   }
 };

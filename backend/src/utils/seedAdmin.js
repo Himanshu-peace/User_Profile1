@@ -28,9 +28,11 @@ export default async function seedAdmin() {
     fullName: "Admin",
     email: adminEmail,
     password: hash,
-    role: "admin"
+    role: "admin",
+    isVerified: true
   });
   await admin.save();
+  admin.isVerified = true;
   console.log("Admin seeded:", adminEmail);
 }
 

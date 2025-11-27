@@ -1,10 +1,14 @@
 import jwt from "jsonwebtoken";
+import User from "../model/user.js";
+import {isTokenBlacklisted} from "../utils/tokenBlacklist.js";
 
 export default function auth(req, res, next) {                                       
   try {
     const header = req.headers.authorization;  //headers contain authorization info is the form Bearer <token>
     if (!header || !header.startsWith("Bearer ")) return res.status(401).json({ message: "Unauthorized" });
     const token = header.split(" ")[1];
+    //check if token is blacklisted
+    if (isTokenBlacklisted(token)) return res.status(401).json({ message: "User Session is expired. Please login again." });
     const decoded = jwt.verify(token, process.env.JWT_SECRET);                                // verify token with secret key stored in env variable 
     req.user = { id: decoded.id, role: decoded.role, email: decoded.email };                  // attach user info to request object 
     //now req object contain user info and body contain request data

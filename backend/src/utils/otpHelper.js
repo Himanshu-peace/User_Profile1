@@ -42,6 +42,7 @@ export async function createAndSendOtp({ email, purpose, sendFn }) {
   const text = `Your verification code is ${otp}. It will expire in ${expirationMinutes} minutes.`;
 
   await sendFn(  to, subject, html, text );
+  console.log("Email sent");  //test
 
   // If hashed, we do NOT return otp (for security). Caller might need it for tests.
   return { recordId: record._id, expiresAt, otp: useHash ? undefined : otp, hashed: useHash };
