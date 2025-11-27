@@ -13,16 +13,23 @@ import errorHandler from "./middlewares/errorMiddleware.js";
 
 const app = express();
 
-const allowed = [
-  "http://localhost:5173"
-];
+// const allowed = [
+//   "http://localhost:5173"
+// ];
+
+// app.use(cors({
+//   origin: (origin, cb) => {
+//     console.log("received origin:",origin);
+//     if (!origin || allowed.includes(origin)) return cb(null, true);
+//     return cb(new Error("Not allowed by CORS"));
+//   },
+//   credentials: true
+// }));
 
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowed.includes(origin)) return cb(null, true);
-    return cb(new Error("Not allowed by CORS"));
-  },
-  credentials: true
+  origin: '*', // Allows ALL origins (web browsers, Hoppscotch, etc.)
+  credentials: true // Note: When origin is '*', credentials: true is IGNORED by the browser. 
+                    // But for server-to-server (Hoppscotch), it doesn't matter.
 }));
 
 
