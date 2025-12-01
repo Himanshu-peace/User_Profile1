@@ -168,10 +168,45 @@ export const deleteMe = async (req, res, next) => {
 /* ADMIN controllers */
 export const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find({ role: { $ne: "admin" } }).select("-password");                   //find all non-admin users
-    res.json(users);
+    let { page = 1, limit = 10, search = "" } = req.query;            // default page=1, limit=10 and search=""
+
+    page = Number(page);
+    limit = Number(limit);
+
+    const query = {
+      role: { $ne: "admin" }, // Exclude admins
+    };
+
+    // const users = await User.find({ role: { $ne: "admin" } }).select("-password");                   //find all non-admin users
+
+    // If search term exists
+    if (search) {
+      query.$or = [                              // search by name or email
+        { fullName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const totalUsers = await User.countDocuments(query);            // count total number of users excluding non-admins
+
+    const users = await User.find(query)
+      .sort({ createdAt: -1 }) // latest first
+      .skip((page - 1) * limit) 
+      .limit(limit) 
+      .select("-password");
+
+    res.status(200).json({
+      success: true,
+      page,
+      limit,
+      totalUsers,
+      totalPages: Math.ceil(totalUsers / limit),
+      results: users.length,
+      users,
+    });
+
   } catch (err) {
-    next(err);
+  next(err);
   }
 };
 

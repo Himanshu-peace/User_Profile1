@@ -3,9 +3,12 @@ import morgan from "morgan";
 import path from "path";                                        
 import { fileURLToPath } from "url";                               // to get __dirname in ES modules but in CJS it's available by default by using __dirname and __filename in every file 
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from '../swagger-output.json' with { type: 'json' };
 
-import authRoutes from "./routes/authRoutes.js";                   // authentication routes
-import userRoutes from "./routes/userRoutes.js";                   // user-related routes
+// import authRoutes from "./routes/authRoutes.js";                   // authentication routes
+// import userRoutes from "./routes/userRoutes.js";                   // user-related routes
+import allRoutes from "./index.js";
 import errorHandler from "./middlewares/errorMiddleware.js";   
 
 // const __filename = fileURLToPath(import.meta.url);                 // get the current file path 
@@ -13,24 +16,23 @@ import errorHandler from "./middlewares/errorMiddleware.js";
 
 const app = express();
 
-// const allowed = [
-//   "http://localhost:5173"
-// ];
-
-// app.use(cors({
-//   origin: (origin, cb) => {
-//     console.log("received origin:",origin);
-//     if (!origin || allowed.includes(origin)) return cb(null, true);
-//     return cb(new Error("Not allowed by CORS"));
-//   },
-//   credentials: true
-// }));
+const allowed = [
+  "http://localhost:5173"
+];
 
 app.use(cors({
-  origin: '*', // Allows ALL origins (web browsers, Hoppscotch, etc.)
-  credentials: true // Note: When origin is '*', credentials: true is IGNORED by the browser. 
-                    // But for server-to-server (Hoppscotch), it doesn't matter.
+  origin: (origin, cb) => {
+    console.log("received origin:",origin);
+    if (!origin || allowed.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
+  credentials: true
 }));
+
+// app.use(cors({
+//   origin: '*', // Allows ALL origins (web browsers, Hoppscotch, etc.)
+//   credentials: true // Note: When origin is '*', credentials: true is IGNORED by the browser. 
+// }));
 
 
 app.use(express.json());                                           // body parsing middleware
@@ -40,8 +42,11 @@ app.use(morgan("dev"));
 // serve uploads
 app.use("/uploads", express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), "uploads")));       // static file serving middleware
 
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
+// app.use("/api/auth", authRoutes);
+// app.use("/api/users", userRoutes);
+app.use("/api", allRoutes);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req, res) => res.json({ message: "Welcome to the API" }));
 

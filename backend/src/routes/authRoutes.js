@@ -1,8 +1,9 @@
 import express from "express";
-import { register,resendOtp, verifyEmailOtp, login, logoutUser } from "../controllers/authController.js";
+import { register,resendOtp, verifyEmailOtp, login, logoutUser, googleAuth, googleAuthCallback } from "../controllers/authController.js";
 import { validate, } from "../middlewares/validationMiddleware.js";
 import { registerSchema,resendOtpSchema, verifySchema, loginSchema } from "../validators/authValidators.js";
 import auth from "../middlewares/authMiddleware.js";
+
 
 const router = express.Router();
 
@@ -11,5 +12,14 @@ router.post("/resend-otp", validate(resendOtpSchema), resendOtp);      //user se
 router.post("/verify-email",validate(verifySchema), verifyEmailOtp);   //user sends otp along with email to verify
 router.post("/login", validate(loginSchema), login);                   //user can login only after verifying email
 router.post("/logout", auth, logoutUser);
+
+
+//  * Google OAauth routes
+//  * get google auth url
+//  * callback
+//  * no need for separate logout routes as it includes JWT token (tokenBlacklist)
+
+router.get("/google", googleAuth);
+router.get("/google/callback", googleAuthCallback);                   // this url sends user to google and prompts them to login, its callback function saves the user and issues JWT token
 
 export default router;

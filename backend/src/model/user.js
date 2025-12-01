@@ -23,6 +23,11 @@ const UserSchema = new mongoose.Schema({
     required: true,
     minlength: [6, "Password must be at least 6 characters long"],
   },
+  authType: {
+    type: String,
+    enum: ['local', 'google', 'facebook'],
+    default: 'local'
+  },
   profile: {
       photo: { 
         type: String,        // path to photo file  

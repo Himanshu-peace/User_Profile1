@@ -1,9 +1,17 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import User from "../model/user.js";
+import User from "../model/user.js";''
+// import axios from "axios";
+import { OAuth2Client } from "google-auth-library";
 import { createAndSendOtp, verifyOtp } from "../utils/otpHelper.js";
 import { sendEmail } from "../utils/emailServices.js";
 import {addTokenToBlacklist} from "../utils/tokenBlacklist.js";
+
+const oauthClient = new OAuth2Client(              // create an instance of OauthClient
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+); // create an instance of OauthClient
 
 const createToken = (user) => {
   return jwt.sign(                                       // sign method takes payload as an object, secret key, options like expiration of token
@@ -12,6 +20,7 @@ const createToken = (user) => {
     { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
   );
 };
+
 
 export const register = async (req, res, next) => {
   try {
@@ -148,5 +157,66 @@ export const logoutUser = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ message: "Logout failed" });
+  }
+};
+
+export const googleAuth = async (req, res, next) => {         //redirect user to google for authentication
+  try {
+    const url = oauthClient.generateAuthUrl({
+      access_type: "offline",
+      prompt: "consent",
+      scope: [                                       //scope to request
+        "profile",
+        "email"
+      ]
+    });
+
+    res.redirect(url);                              // this url sends user to google and prompts them to login, attach callback url with a query parameter 
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const googleAuthCallback = async (req, res, next) => {
+  try {
+    const { code } = req.query;
+
+    const { tokens } = await oauthClient.getToken(code);      //exchange code for tokens
+    oauthClient.setCredentials(tokens);                       //set credentials
+
+    const ticket = await oauthClient.verifyIdToken({          //verify id token
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();                        //get payload from ticket
+
+    let user = await User.findOne({ email: payload.email });
+    if (user && user.authType !== "google") {
+      return res.status(400).json({ message: "User already registered with different auth type" });
+    }
+
+    if (!user) {
+      user = await User.create({
+        fullName: payload.name,
+        email: payload.email,
+        password: null,
+        authType: "google",
+        profile: {
+          photo: payload.picture,
+        }
+      });
+    }
+
+    const token = createToken(user);
+    return res.status(201).json({ token, user: { id: user._id, email: user.email, fullName: user.fullName, role: user.role, authType: user.authType}});
+    // Redirect to frontend with token
+      // return res.redirect(
+      //   `${process.env.FRONTEND_URL}/oauth-success?token=${token}`
+      // );
+
+  } catch (error) {
+    next(error);
   }
 };

@@ -24,18 +24,18 @@ const upload = multer({
 });
 
 // user routes
-router.get("/me", auth, getMe);                                                                       // get current user's profile
-router.put("/me/", auth, validate(fullUpdateUserSchema), upload.single("photo"), updateMe);                   // multipart/form-data with optional "photo" field
-router.patch("/me/", auth, validate(updateUserSchema), upload.single("photo"), updateMe);                 // alternate PATCH method for partial update
+router.get("/me/get-info", auth, getMe);                                                                       // get current user's profile
+router.put("/me/save-info", auth, validate(fullUpdateUserSchema), upload.single("photo"), updateMe);                   // multipart/form-data with optional "photo" field
+router.patch("/me/update-info", auth, validate(updateUserSchema), upload.single("photo"), updateMe);                 // alternate PATCH method for partial update
 router.post("/me/request-reset", auth, requestPasswordReset);                                         //genrate's otp for password
 router.patch("/me/change-pass", auth, validate(newPasswordSchema), updatePassword);                       // change password   {emai, otp, currentPassword, newPassword } = req.body; 
 router.patch("/me/deactivate", auth, deactivateMe);                                                   // deactivate account
 router.patch("/me/restore", auth, activateMe);                                                        // restore deactivated account
-router.delete("/me/", auth, deleteMe);                                                                // full delete - delete account permanently
+router.delete("/me/delete", auth, deleteMe);                                                                // full delete - delete account permanently
 
 
 // admin routes
-router.get("/", auth, requireRole("admin"), getAllUsers);
+router.get("/all-users", auth, requireRole("admin"), getAllUsers);                                           //example: https://your-url.com/api/admin/users?page=1&limit=10&search=john
 router.patch("/:id/block", auth, requireRole("admin"), blockUser);
 router.patch("/:id/unblock", auth, requireRole("admin"), unblockUser);
 router.patch("/:id/owner", validate(updateUserSchema), auth, requireRole("admin"), upload.single("photo"), updateMe);             //takes admins id as param to update admin 
